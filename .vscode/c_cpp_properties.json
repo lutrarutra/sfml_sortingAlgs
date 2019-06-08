@@ -24,7 +24,6 @@
 			"includePath": [
 				"${workspaceFolder}/src",
 				"/usr/local/include/**",
-				"/usr/include/**"
 			],
 			"defines": [
                 "_DEBUG"
