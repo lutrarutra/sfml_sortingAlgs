@@ -9,14 +9,14 @@
 
 #define LOG(x) std::cout << x << std::endl
 
-void swap(Bar *a[], int i, int j)
+void swap(int *a, int i, int j)
 {
-	Bar *temp = a[i];
+	int temp = a[i];
 	a[i] = a[j];
 	a[j] = temp;
 }
 
-void shuffle(Bar *a[], int arraySize)
+void shuffle(int *a, int arraySize)
 {
 	srand(time(NULL));
 	for (int i = arraySize - 1; i > 0; --i)
@@ -48,75 +48,87 @@ void cpy_arr(Bar *src[], Bar *dest[], int start, int end)
 	}
 }
 
-void merge(Bar *a[], int l, int m, int r)
+void merge(int *arr, int l, int m, int r)
 {
-	int i, j, k = 0;
+	int i, j, k;
 	int n1 = m - l + 1;
 	int n2 = r - m;
 
-	Bar *L[n1];
-	Bar *R[n2];
-	cpy_arr(a, L, l, n1);
-	cpy_arr(a, R, m + 1, n2);
+	/* create temp arrays */
+	int L[n1], R[n2];
 
+	/* Copy data to temp arrays L[] and R[] */
+	for (i = 0; i < n1; i++)
+		L[i] = arr[l + i];
+	for (j = 0; j < n2; j++)
+		R[j] = arr[m + 1 + j];
+
+	/* Merge the temp arrays back into arr[l..r]*/
+	i = 0; // Initial index of first subarray
+	j = 0; // Initial index of second subarray
+	k = l; // Initial index of merged subarray
 	while (i < n1 && j < n2)
 	{
-
-		if (L[i]->getN() <= R[j]->getN())
+		if (L[i] <= R[j])
 		{
-
-			a[k]->setN(L[i]->getN());
+			arr[k] = L[i];
+			usleep(10000);
+			i++;
 		}
 		else
 		{
-			a[k]->setN(R[j]->getN());
+			arr[k] = R[j];
+			usleep(10000);
+			j++;
 		}
 		k++;
 	}
 
+	/* Copy the remaining elements of L[], if there
+       are any */
 	while (i < n1)
 	{
-		a[k]->setN(L[i]->getN());
-		++i;
-		++k;
+		arr[k] = L[i];
+		usleep(10000);
+		i++;
+		k++;
 	}
 
+	/* Copy the remaining elements of R[], if there
+       are any */
 	while (j < n2)
 	{
-		a[k]->setN(R[j]->getN());
-		++j;
-		++k;
-	}
-
-	for(int ii = 0; ii < n1; ++i)
-	{
-		delete L[ii];
-	}
-	for(int ii = 0; ii < n2; ++i)
-	{
-		delete R[ii];
+		arr[k] = R[j];
+		usleep(10000);
+		j++;
+		k++;
 	}
 }
 
-void mergeSort(Bar *a[], int l, int r)
+void mergeSort(int *arr, int l, int r)
 {
 	if (l < r)
 	{
-		int m = l + (r - 1) / 2;
-		mergeSort(a, l, m);
-		mergeSort(a, m + 1, r);
-		merge(a, l, m, r);
+		// Same as (l+r)/2, but avoids overflow for
+		// large l and h
+		int m = l + (r - l) / 2;
+
+		// Sort first and second halves
+		mergeSort(arr, l, m);
+		mergeSort(arr, m + 1, r);
+
+		merge(arr, l, m, r);
 	}
 }
 
-int quickSortPartition(Bar *a[], int lowI, int highI)
+int quickSortPartition(int *a, int lowI, int highI)
 {
-	int pivot = a[highI]->getN();
+	int pivot = a[highI];
 	int i = lowI - 1;
 
 	for (int j = lowI; j <= highI - 1; ++j)
 	{
-		if (a[j]->getN() <= pivot)
+		if (a[j] <= pivot)
 		{
 			i++;
 			swap(a, i, j);
@@ -128,14 +140,53 @@ int quickSortPartition(Bar *a[], int lowI, int highI)
 	return i + 1;
 }
 
-void quickSort(Bar *a[], int lowI, int highI)
+void quickSort(int *numbers, int lowI, int highI)
 {
 	if (lowI < highI)
 	{
-		int pi = quickSortPartition(a, lowI, highI);
+		int pi = quickSortPartition(numbers, lowI, highI);
 
-		quickSort(a, lowI, pi - 1);
-		quickSort(a, pi + 1, highI);
+		quickSort(numbers, lowI, pi - 1);
+		quickSort(numbers, pi + 1, highI);
+	}
+}
+
+void insertionSort(int *arr, int numCount)
+{
+	for (int i = 0; i < numCount; ++i)
+	{
+		for (int j = i; j > 0 && arr[j - 1] > arr[j]; --j)
+		{
+			swap(arr, j, j - 1);
+			usleep(5000);
+		}
+	}
+}
+
+void bubbleSort(int *arr, int numCount)
+{
+	bool swapped;
+	do
+	{
+		swapped = false;
+		for (int i = 1; i < numCount; ++i)
+		{
+			if (arr[i - 1] > arr[i])
+			{
+				swap(arr, i, i - 1);
+				//swapped = true;
+				usleep(5000);
+			}
+		}
+
+	} while (!swapped);
+}
+
+void updateBars(Bar *bars[], int *numbers, int numCount)
+{
+	for (int i = 0; i < numCount; ++i)
+	{
+		bars[i]->setN(numbers[i]);
 	}
 }
 
@@ -143,51 +194,49 @@ int main()
 {
 	sf::RenderWindow window(sf::VideoMode(1280, 720), "Sorting Algorithms", sf::Style::Close);
 
-	const int barsCount = 250;
-	Bar *bars[barsCount];
+	const int numCount = 250;
 
-	auto swapTime = std::chrono::milliseconds(500);
-	auto dt = std::chrono::high_resolution_clock::now();
+	Bar *bars[numCount];
+	int numbers[numCount];
 
-	int dx = ((window.getSize().x) / barsCount);
-	int dh = (window.getSize().y / barsCount);
+	int dx = ((window.getSize().x) / numCount);
+	int dy = (window.getSize().y / numCount);
 
-	for (int i = 0; i < barsCount; ++i)
+	for (int i = 0; i < numCount; ++i)
 	{
-		bars[i] = new Bar(dx, dh * (i + 1), i);
+		bars[i] = new Bar(dx, i, dy);
+		numbers[i] = i;
 	}
 
-	shuffle(bars, barsCount);
+	shuffle(numbers, numCount);
+	updateBars(bars, numbers, numCount);
 
-	for (int i = 0; i < barsCount; ++i)
+	for (int i = 0; i < numCount; ++i)
 	{
 		bars[i]->getRect()->setPosition(dx * (i), window.getSize().y);
 	}
 
-	renderBars(bars, barsCount, window);
-	//std::thread sort(&quickSort, bars, 0, barsCount - 1);
-	std::thread sort(&mergeSort, bars, 0, barsCount - 1);
+	renderBars(bars, numCount, window);
+	//std::thread sort(&quickSort, numbers, 0, numCount - 1);
+	//std::thread sort(&mergeSort, numbers, 0, numCount - 1);
+	//std::thread sort(&insertionSort, numbers, numCount);
+	std::thread sort(&bubbleSort, numbers, numCount);
 
 	sf::Event event;
 
 	while (window.isOpen())
 	{
-		if (std::chrono::high_resolution_clock::now() > dt)
-		{
-			//std::cout << "Hello" << std::endl;
-			dt = std::chrono::high_resolution_clock::now() + swapTime;
-		}
 
 		while (window.pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed)
 				window.close();
 		}
-
-		renderBars(bars, barsCount, window);
+		updateBars(bars, numbers, numCount);
+		renderBars(bars, numCount, window);
 	}
 
-	for (int i = 0; i < barsCount; ++i)
+	for (int i = 0; i < numCount; ++i)
 	{
 		delete bars[i];
 	}
