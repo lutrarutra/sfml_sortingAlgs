@@ -2,7 +2,12 @@
 
 Bar::Bar()
 {
+	this->n = 0;
+}
 
+Bar::Bar(int n)
+{
+	this->n = n;
 }
 
 Bar::Bar(int _w, int _h, int _n)
@@ -16,6 +21,11 @@ Bar::Bar(int _w, int _h, int _n)
 	this->rect->setFillColor(sf::Color(175, 205, 255));
 	this->rect->setOutlineThickness(1.0f);
 	this->rect->setOutlineColor(sf::Color::Black);
+}
+
+void Bar::setN(int n)
+{
+	this->n = n;
 }
 
 int Bar::getN()

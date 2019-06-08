@@ -40,6 +40,75 @@ void renderBars(Bar *bars[], int barsCount, sf::RenderWindow &window)
 	window.display();
 }
 
+void cpy_arr(Bar *src[], Bar *dest[], int start, int end)
+{
+	for (int i = start; i < end; ++i)
+	{
+		dest[i - start] = new Bar(src[i]->getN());
+	}
+}
+
+void merge(Bar *a[], int l, int m, int r)
+{
+	int i, j, k = 0;
+	int n1 = m - l + 1;
+	int n2 = r - m;
+
+	Bar *L[n1];
+	Bar *R[n2];
+	cpy_arr(a, L, l, n1);
+	cpy_arr(a, R, m + 1, n2);
+
+	while (i < n1 && j < n2)
+	{
+
+		if (L[i]->getN() <= R[j]->getN())
+		{
+
+			a[k]->setN(L[i]->getN());
+		}
+		else
+		{
+			a[k]->setN(R[j]->getN());
+		}
+		k++;
+	}
+
+	while (i < n1)
+	{
+		a[k]->setN(L[i]->getN());
+		++i;
+		++k;
+	}
+
+	while (j < n2)
+	{
+		a[k]->setN(R[j]->getN());
+		++j;
+		++k;
+	}
+
+	for(int ii = 0; ii < n1; ++i)
+	{
+		delete L[ii];
+	}
+	for(int ii = 0; ii < n2; ++i)
+	{
+		delete R[ii];
+	}
+}
+
+void mergeSort(Bar *a[], int l, int r)
+{
+	if (l < r)
+	{
+		int m = l + (r - 1) / 2;
+		mergeSort(a, l, m);
+		mergeSort(a, m + 1, r);
+		merge(a, l, m, r);
+	}
+}
+
 int quickSortPartition(Bar *a[], int lowI, int highI)
 {
 	int pivot = a[highI]->getN();
@@ -70,11 +139,6 @@ void quickSort(Bar *a[], int lowI, int highI)
 	}
 }
 
-void sortingThread(Bar *bars[], int barsCount)
-{
-	quickSort(bars, 0, barsCount - 1);
-}
-
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(1280, 720), "Sorting Algorithms", sf::Style::Close);
@@ -101,8 +165,8 @@ int main()
 	}
 
 	renderBars(bars, barsCount, window);
-
-	std::thread sort(&sortingThread, bars, barsCount);
+	//std::thread sort(&quickSort, bars, 0, barsCount - 1);
+	std::thread sort(&mergeSort, bars, 0, barsCount - 1);
 
 	sf::Event event;
 
@@ -121,7 +185,6 @@ int main()
 		}
 
 		renderBars(bars, barsCount, window);
-
 	}
 
 	for (int i = 0; i < barsCount; ++i)
