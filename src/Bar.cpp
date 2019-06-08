@@ -18,6 +18,11 @@ Bar::Bar(int _w, int _h, int _n)
 	this->rect->setOutlineColor(sf::Color::Black);
 }
 
+int Bar::getN()
+{
+	return this->n;
+}
+
 Bar::~Bar()
 {
 	delete this->rect;
