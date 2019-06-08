@@ -1,7 +1,13 @@
 #include <math.h>
 #include <chrono>
+#include <thread>
+#include <iostream>
+#include <unistd.h>
+
 #include "Main.hpp"
 #include "Bar.h"
+
+#define LOG(x) std::cout << x << std::endl
 
 void swap(Bar *a[], int i, int j)
 {
@@ -22,6 +28,10 @@ void shuffle(Bar *a[], int arraySize)
 
 void renderBars(Bar *bars[], int barsCount, sf::RenderWindow &window)
 {
+	for (int i = 0; i < barsCount; ++i)
+	{
+		bars[i]->getRect()->setPosition(((window.getSize().x) / barsCount) * (i), window.getSize().y);
+	}
 	window.clear(sf::Color(120, 125, 135));
 	for (int i = 0; i < barsCount; ++i)
 	{
@@ -30,49 +40,50 @@ void renderBars(Bar *bars[], int barsCount, sf::RenderWindow &window)
 	window.display();
 }
 
-int quickSortStep(Bar *a[], int arraySize, int startIndex, int pivotIndex)
+int quickSortPartition(Bar *a[], int lowI, int highI)
 {
-	int ri = -1; //first smaller num than pivot from right
-	int li = -1; //first bigger num than pivot from left
+	int pivot = a[highI]->getN();
+	int i = lowI - 1;
 
-	for (int i = startIndex; i < pivotIndex; ++i)
+	for (int j = lowI; j <= highI - 1; ++j)
 	{
-		if (a[i]->getN() > a[pivotIndex]->getN() && li == -1)
-			li = i;
-		if (a[pivotIndex - i - 1]->getN() < a[pivotIndex]->getN() && ri == -1)
-			ri = pivotIndex - i - 1;
+		if (a[j]->getN() <= pivot)
+		{
+			i++;
+			swap(a, i, j);
+			usleep(30000);
+		}
 	}
-
-	if (ri < li && ri != -1)
-	{
-		std::cout << "changing pivot ri: " << ri << " li: " << li << std::endl;
-		swap(a, li, pivotIndex);
-		pivotIndex--;
-		return pivotIndex;
-	}
-	std::cout << "swapping ri and li " << ri << " " << li << std::endl;
-
-	if (li == -1 && ri != -1)
-	{
-		pivotIndex--;
-		return pivotIndex;
-	}
-
-	if (ri != -1 && li != -1)
-		swap(a, ri, li);
-	return pivotIndex;
+	swap(a, i + 1, highI);
+	usleep(10000);
+	return i + 1;
 }
 
+void quickSort(Bar *a[], int lowI, int highI)
+{
+	if (lowI < highI)
+	{
+		int pi = quickSortPartition(a, lowI, highI);
+
+		quickSort(a, lowI, pi - 1);
+		quickSort(a, pi + 1, highI);
+	}
+}
+
+void sortingThread(Bar *bars[], int barsCount)
+{
+	quickSort(bars, 0, barsCount - 1);
+}
 
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(1280, 720), "Sorting Algorithms", sf::Style::Close);
 
+	const int barsCount = 250;
+	Bar *bars[barsCount];
+
 	auto swapTime = std::chrono::milliseconds(500);
 	auto dt = std::chrono::high_resolution_clock::now();
-
-	int barsCount = 10;
-	Bar *bars[barsCount];
 
 	int dx = ((window.getSize().x) / barsCount);
 	int dh = (window.getSize().y / barsCount);
@@ -91,7 +102,7 @@ int main()
 
 	renderBars(bars, barsCount, window);
 
-	int pivotIndex = barsCount - 1;
+	std::thread sort(&sortingThread, bars, barsCount);
 
 	sf::Event event;
 
@@ -100,8 +111,6 @@ int main()
 		if (std::chrono::high_resolution_clock::now() > dt)
 		{
 			//std::cout << "Hello" << std::endl;
-			pivotIndex = quickSortStep(bars, barsCount, 0, pivotIndex);
-			renderBars(bars, barsCount, window);
 			dt = std::chrono::high_resolution_clock::now() + swapTime;
 		}
 
@@ -110,6 +119,9 @@ int main()
 			if (event.type == sf::Event::Closed)
 				window.close();
 		}
+
+		renderBars(bars, barsCount, window);
+
 	}
 
 	for (int i = 0; i < barsCount; ++i)

@@ -1,7 +1,8 @@
 {
-	"editor.fontFamily": "'Ubuntu Mono', 'Courier', 'Courier New', Consolas, monospace",
+	"editor.fontFamily": "'Fira Code'",
+    "editor.fontLigatures": true,
 	"editor.lineHeight": 20,
-	"editor.fontSize": 14,
+	"editor.fontSize": 13,
 	"editor.tabSize": 4,
 	"editor.insertSpaces": false,
 
@@ -50,7 +51,8 @@
 		"*.json": "jsonc",
 		"*.stats": "cpp",
 		"*.rc": "cpp",
-		"iostream": "cpp"
+		"iostream": "cpp",
+		"chrono": "cpp"
 	},
 
 	"C_Cpp.autocomplete": "Default",
