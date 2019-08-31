@@ -4,7 +4,6 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "Main.hpp"
 #include "Bar.h"
 
 #define LOG(x) std::cout << x << std::endl
