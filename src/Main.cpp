@@ -9,6 +9,8 @@
 
 #define LOG(x) std::cout << x << std::endl
 
+bool running = true;
+
 void swap(int *a, int i, int j)
 {
 	int temp = a[i];
@@ -100,6 +102,8 @@ void merge(int *arr, int l, int m, int r)
 
 void mergeSort(int *arr, int l, int r)
 {
+	if(!running)
+		return;
 	if (l < r)
 	{
 		int m = l + (r - l) / 2;
@@ -120,6 +124,8 @@ int quickSortPartition(int *a, int lowI, int highI)
 	{
 		if (a[j] <= pivot)
 		{
+			if(!running)
+				return -1;
 			i++;
 			swap(a, i, j);
 			usleep(30000);
@@ -132,6 +138,8 @@ int quickSortPartition(int *a, int lowI, int highI)
 
 void quickSort(int *numbers, int lowI, int highI)
 {
+	if(!running)
+		return;
 	if (lowI < highI)
 	{
 		int pi = quickSortPartition(numbers, lowI, highI);
@@ -143,10 +151,13 @@ void quickSort(int *numbers, int lowI, int highI)
 
 void insertionSort(int *arr, int numCount)
 {
+
 	for (int i = 0; i < numCount; ++i)
 	{
 		for (int j = i; j > 0 && arr[j - 1] > arr[j]; --j)
 		{
+			if(!running)
+				return;
 			swap(arr, j, j - 1);
 			usleep(5000);
 		}
@@ -161,6 +172,8 @@ void bubbleSort(int *arr, int numCount)
 		swapped = false;
 		for (int i = 1; i < numCount; ++i)
 		{
+			if(!running)
+				return;
 			if (arr[i - 1] > arr[i])
 			{
 				swap(arr, i, i - 1);
@@ -213,9 +226,9 @@ int main()
 
 	// Different Algorithms
 	//std::thread sort(&quickSort, numbers, 0, numCount - 1);
-	std::thread sort(&mergeSort, numbers, 0, numCount - 1);
+	//std::thread sort(&mergeSort, numbers, 0, numCount - 1);
 	//std::thread sort(&insertionSort, numbers, numCount);
-	//std::thread sort(&bubbleSort, numbers, numCount);
+	std::thread sort(&bubbleSort, numbers, numCount);
 
 	sf::Event event;
 
@@ -230,11 +243,11 @@ int main()
 		updateBars(bars, numbers, numCount);
 		renderBars(bars, numCount, window);
 	}
-
+	running = false;
 	for (int i = 0; i < numCount; ++i)
 	{
 		delete bars[i];
 	}
-
+	sort.join();
 	return 0;
 }
